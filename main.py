@@ -30,7 +30,8 @@ Tester les algorithmes présentés dans le cours et quelques variantes
 def preprocess(texts):
     stemmer = PorterStemmer()
     stop_words = set(stopwords.words('english'))
-    processed_texts = [" ".join([stemmer.stem(word) for word in text.split() if word.lower() not in stop_words]) for text in texts]
+    processed_texts = [" ".join([stemmer.stem(word) for word in text.split()
+                                 if word.lower() not in stop_words]) for text in texts]
     return processed_texts
 
 
