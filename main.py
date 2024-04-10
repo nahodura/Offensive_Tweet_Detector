@@ -76,37 +76,49 @@ if __name__ == '__main__':
 
     # ----------------------------- Parameters for Grid Search -----------------------------
     nb_params = {
-        'alpha': [0.5, 1.0],  # Multinomial Naive Bayes
-        # Need to add 'var_smoothing' parameter for Gaussian Naive Bayes
+        'alpha': [0.5, 1.0, 2.0, 5.0, 10.0],  # Multinomial Naive Bayes
     }
     dt_params = {
-        'max_depth': [None, 10, 20],
-        'criterion': ['gini', 'entropy']
+        'max_depth': [None, 10, 20, 30, 40, 50],  # None for no limit on the depth
+        'criterion': ['gini', 'entropy'],  # 'gini' for small datasets and 'entropy' for large datasets
     }
     rf_params = {
-        'n_estimators': [10, 50, 100],
-        'max_depth': [None, 10, 20]
+        'n_estimators': [10, 50, 100],  # Number of trees in the forest
+        'max_depth': [None, 10, 20],
+        'criterion': ['gini', 'entropy'],
     }
     svm_params = {
-        'kernel': ['linear', 'rbf'], # 'linear' for small datasets and 'rbf' for large datasets
-        'C': [0.1, 1, 10]
+        'kernel': ['linear', 'rbf'],  # 'linear' for small datasets and 'rbf' for large datasets
+        'C': [0.1, 1, 10, 100]
     }
     mlp_params = {
         'hidden_layer_sizes': [(50,), (100,)],  # 50 and 100 neurons in the hidden layer
         'activation': ['logistic', 'relu'],  # 'logistic' for small datasets and 'relu' for large datasets
-        'solver': ['adam', 'sgd', 'lbfgs'] #'adam' is the best solver for large datasets and 'lbfgs' for small datasets
+        'solver': ['adam', 'sgd', 'lbfgs']
     }
 
     # ---------------------- Training and eval. of models -------------------------
+    """
     # Naive Bayes
     best_nb = train_and_evaluate_model(MultinomialNB(), nb_params, TrainingDataSet, TrainingLabels, TestDataSet,
                                        TestLabels, 'Naive Bayes')
+    
+    # On doit convertir les données d'entraînement et de test en matrices denses pour le Naive Bayes gaussien
+    TrainingDataSetDense = TrainingDataSet.toarray()
+    TestDataSetDense = TestDataSet.toarray()
+    
+    # Gaussian Naive Bayes
+    best_gnb = train_and_evaluate_model( GaussianNB(),                   
+        {},  # Pas de paramètres à régler pour le Naive Bayes gaussien
+        TrainingDataSetDense, TrainingLabels, TestDataSetDense,TestLabels, 'Gaussian Naive Bayes')
+    
     # Decision Tree
     best_dt = train_and_evaluate_model(DecisionTreeClassifier(), dt_params, TrainingDataSet, TrainingLabels,
                                        TestDataSet, TestLabels, 'Decision Tree')
     # Random Forest
     best_rf = train_and_evaluate_model(RandomForestClassifier(), rf_params, TrainingDataSet, TrainingLabels,
                                        TestDataSet, TestLabels, 'Random Forest')
+                                       """
     # SVM
     best_svm = train_and_evaluate_model(SVC(), svm_params, TrainingDataSet, TrainingLabels, TestDataSet, TestLabels,
                                         'SVM')
@@ -126,19 +138,4 @@ if __name__ == '__main__':
         'Multilayer Perceptron'
     )
 
-
-    # On doit convertir les données d'entraînement et de test en matrices denses pour le Naive Bayes gaussien
-    TrainingDataSetDense = TrainingDataSet.toarray()
-    TestDataSetDense = TestDataSet.toarray()
-
-    # Entraînez et évaluez le Naive Bayes gaussien
-    best_gnb = train_and_evaluate_model(
-        GaussianNB(),
-        {},  # Pas de paramètres à régler pour le Naive Bayes gaussien
-        TrainingDataSetDense,
-        TrainingLabels,
-        TestDataSetDense,
-        TestLabels,
-        'Gaussian Naive Bayes'
-    )
 
