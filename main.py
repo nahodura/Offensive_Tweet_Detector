@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.naive_bayes import GaussianNB
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 import nltk
@@ -39,7 +40,7 @@ def preprocess(texts):
 # 2. Function to train and evaluate a model with different hyperparameters
 def train_and_evaluate_model(model, params, X_train, y_train, X_test, y_test, model_name='Model'):
     # Grid search for hyperparameter tuning
-    grid_search = GridSearchCV(model, params, cv=5, scoring='f1_macro')
+    grid_search = GridSearchCV(model, params, cv=5, scoring='f1_macro', n_jobs=-1, verbose=10)
     # Train the model on the training set
     grid_search.fit(X_train, y_train)
     print(f'{model_name} Best Params:', grid_search.best_params_)
@@ -107,6 +108,29 @@ if __name__ == '__main__':
     # SVM
     best_svm = train_and_evaluate_model(SVC(), svm_params, TrainingDataSet, TrainingLabels, TestDataSet, TestLabels,
                                         'SVM')
-    # Multilayer Perceptron
-    best_mlp = train_and_evaluate_model(MLPClassifier(max_iter=1000), mlp_params, TrainingDataSet, TrainingLabels,
-                                        TestDataSet, TestLabels, 'Multilayer Perceptron')
+    # Multilayer Perceptron avec early stopping
+    best_mlp = train_and_evaluate_model(
+        MLPClassifier(max_iter=300, early_stopping=True, hidden_layer_sizes=(50,)),
+        mlp_params,
+        TrainingDataSet,
+        TrainingLabels,
+        TestDataSet,
+        TestLabels,
+        'Multilayer Perceptron'
+    )
+
+
+    # On doit convertir les données d'entraînement et de test en matrices denses pour le Naive Bayes gaussien
+    TrainingDataSetDense = TrainingDataSet.toarray()
+    TestDataSetDense = TestDataSet.toarray()
+
+    # Entraînez et évaluez le Naive Bayes gaussien
+    best_gnb = train_and_evaluate_model(
+        GaussianNB(),
+        {},  # Pas de paramètres à régler pour le Naive Bayes gaussien
+        TrainingDataSetDense,
+        TrainingLabels,
+        TestDataSetDense,
+        TestLabels,
+        'Gaussian Naive Bayes'
+    )
