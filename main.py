@@ -36,13 +36,17 @@ def preprocess(texts):
     return processed_texts
 
 
-
-# Adjust the function to accept hyperparameters and perform grid search
+# 2. Function to train and evaluate a model with different hyperparameters
 def train_and_evaluate_model(model, params, X_train, y_train, X_test, y_test, model_name='Model'):
+    # Grid search for hyperparameter tuning
     grid_search = GridSearchCV(model, params, cv=5, scoring='f1_macro')
+    # Train the model on the training set
     grid_search.fit(X_train, y_train)
     print(f'{model_name} Best Params:', grid_search.best_params_)
+    # Evaluate the model on the test set
     predictions = grid_search.predict(X_test)
+
+    # Print classification report
     print(f'{model_name} Evaluation')
     print(classification_report(y_test, predictions))
     return grid_search.best_estimator_
