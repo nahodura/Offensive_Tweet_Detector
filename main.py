@@ -11,6 +11,7 @@ from sklearn.model_selection import GridSearchCV
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 import nltk
+
 nltk.download('stopwords')
 
 """
@@ -27,6 +28,7 @@ Tester les algorithmes présentés dans le cours et quelques variantes
 - Modèle basé sur BERT (BONUS)
 """
 
+
 # 1. Preprocessing function : Tokenization, stemming, and stopwords removal
 def preprocess(texts):
     stemmer = PorterStemmer()
@@ -38,8 +40,8 @@ def preprocess(texts):
 
 # 2. Function to train and evaluate a model with different hyperparameters
 def train_and_evaluate_model(model, params, X_train, y_train, X_test, y_test, model_name='Model'):
-    # Grid search for hyperparameter tuning
-    grid_search = GridSearchCV(model, params, cv=5, scoring='f1_macro')
+    # Grid search for hyperparameter tuning : n_jobs=-1 for parallel processing and verbose=3 for detailed output.
+    grid_search = GridSearchCV(model, params, cv=5, scoring='f1_macro', n_jobs=-1, verbose=10)
     # Train the model on the training set
     grid_search.fit(X_train, y_train)
     print(f'{model_name} Best Params:', grid_search.best_params_)
@@ -53,7 +55,6 @@ def train_and_evaluate_model(model, params, X_train, y_train, X_test, y_test, mo
 
 
 if __name__ == '__main__':
-
     # ----------------------------- Data loading and preprocessing -----------------------------
     df = pd.read_csv('./offenseval-training-v1.tsv', sep='\t')
     # Data extraction from data file
@@ -75,7 +76,7 @@ if __name__ == '__main__':
     # ----------------------------- Parameters for Grid Search -----------------------------
     nb_params = {
         'alpha': [0.5, 1.0],  # Multinomial Naive Bayes
-        #Need to add 'var_smoothing' parameter for Gaussian Naive Bayes
+        # Need to add 'var_smoothing' parameter for Gaussian Naive Bayes
     }
     dt_params = {
         'max_depth': [None, 10, 20],
@@ -86,12 +87,13 @@ if __name__ == '__main__':
         'max_depth': [None, 10, 20]
     }
     svm_params = {
-        'kernel': ['linear', 'rbf'],
+        'kernel': ['linear', 'rbf'], # 'linear' for small datasets and 'rbf' for large datasets
         'C': [0.1, 1, 10]
     }
     mlp_params = {
-        'hidden_layer_sizes': [(50,), (100,)],
-        'activation': ['logistic', 'relu']
+        'hidden_layer_sizes': [(50,), (100,)],  # 50 and 100 neurons in the hidden layer
+        'activation': ['logistic', 'relu'],  # 'logistic' for small datasets and 'relu' for large datasets
+        'solver': ['adam', 'sgd', 'lbfgs'] #'adam' is the best solver for large datasets and 'lbfgs' for small datasets
     }
 
     # ---------------------- Training and eval. of models -------------------------
@@ -107,6 +109,7 @@ if __name__ == '__main__':
     # SVM
     best_svm = train_and_evaluate_model(SVC(), svm_params, TrainingDataSet, TrainingLabels, TestDataSet, TestLabels,
                                         'SVM')
+
     # Multilayer Perceptron
-    best_mlp = train_and_evaluate_model(MLPClassifier(max_iter=1000), mlp_params, TrainingDataSet, TrainingLabels,
+    best_mlp = train_and_evaluate_model(MLPClassifier(max_iter=200), mlp_params, TrainingDataSet, TrainingLabels,
                                         TestDataSet, TestLabels, 'Multilayer Perceptron')
