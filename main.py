@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.naive_bayes import GaussianNB
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 import nltk
@@ -113,3 +114,31 @@ if __name__ == '__main__':
     # Multilayer Perceptron
     best_mlp = train_and_evaluate_model(MLPClassifier(max_iter=200), mlp_params, TrainingDataSet, TrainingLabels,
                                         TestDataSet, TestLabels, 'Multilayer Perceptron')
+
+    # Multilayer Perceptron avec early stopping
+    best_mlp = train_and_evaluate_model(
+        MLPClassifier(max_iter=300, early_stopping=True, hidden_layer_sizes=(50,)),
+        mlp_params,
+        TrainingDataSet,
+        TrainingLabels,
+        TestDataSet,
+        TestLabels,
+        'Multilayer Perceptron'
+    )
+
+
+    # On doit convertir les données d'entraînement et de test en matrices denses pour le Naive Bayes gaussien
+    TrainingDataSetDense = TrainingDataSet.toarray()
+    TestDataSetDense = TestDataSet.toarray()
+
+    # Entraînez et évaluez le Naive Bayes gaussien
+    best_gnb = train_and_evaluate_model(
+        GaussianNB(),
+        {},  # Pas de paramètres à régler pour le Naive Bayes gaussien
+        TrainingDataSetDense,
+        TrainingLabels,
+        TestDataSetDense,
+        TestLabels,
+        'Gaussian Naive Bayes'
+    )
+
