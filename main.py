@@ -74,11 +74,11 @@ if __name__ == '__main__':
 
     # ----------------------------- Parameters for Grid Search -----------------------------
     nb_params = {
-        'alpha': [0.5, 1.0],  # Example values for multinomial Naive Bayes
-        # Add 'var_smoothing' if you wish to test Gaussian Naive Bayes
+        'alpha': [0.5, 1.0],  # Multinomial Naive Bayes
+        #Need to add 'var_smoothing' parameter for Gaussian Naive Bayes
     }
     dt_params = {
-        'max_depth': [None, 10, 20],  # None means no limit
+        'max_depth': [None, 10, 20],
         'criterion': ['gini', 'entropy']
     }
     rf_params = {
@@ -90,7 +90,7 @@ if __name__ == '__main__':
         'C': [0.1, 1, 10]
     }
     mlp_params = {
-        'hidden_layer_sizes': [(50,), (100,)],  # Example sizes
+        'hidden_layer_sizes': [(50,), (100,)],
         'activation': ['logistic', 'relu']
     }
 
