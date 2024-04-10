@@ -7,6 +7,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import GridSearchCV
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 import nltk
@@ -35,17 +36,21 @@ def preprocess(texts):
     return processed_texts
 
 
-# Train and evaluate multiple models
-def train_and_evaluate_model(model, X_train, y_train, X_test, y_test, model_name='Model'):
-    model.fit(X_train, y_train)
-    predictions = model.predict(X_test)
+
+# Adjust the function to accept hyperparameters and perform grid search
+def train_and_evaluate_model(model, params, X_train, y_train, X_test, y_test, model_name='Model'):
+    grid_search = GridSearchCV(model, params, cv=5, scoring='f1_macro')
+    grid_search.fit(X_train, y_train)
+    print(f'{model_name} Best Params:', grid_search.best_params_)
+    predictions = grid_search.predict(X_test)
     print(f'{model_name} Evaluation')
     print(classification_report(y_test, predictions))
+    return grid_search.best_estimator_
 
 
 if __name__ == '__main__':
 
-    # Read data from file
+    # ----------------------------- Data loading and preprocessing -----------------------------
     df = pd.read_csv('./offenseval-training-v1.tsv', sep='\t')
     # Data extraction from data file
     texts = df['tweet'].values
@@ -54,30 +59,50 @@ if __name__ == '__main__':
     # Preprocessing of texts
     texts_processed = preprocess(texts)
 
-    # Vectorization of texts
+    # ----------------------------- Vectorization of texts -----------------------------------
     vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(texts_processed)
     y = labels
 
-    # Split data into training and testing sets (70% training, 30% testing)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    # --------------------Split data into training and testing sets ------------------------
+    TrainingDataSet, TestDataSet, TrainingLabels, TestLabels \
+        = train_test_split(X, y, test_size=0.3, random_state=42)
 
+    # ----------------------------- Parameters for Grid Search -----------------------------
+    nb_params = {
+        'alpha': [0.5, 1.0],  # Example values for multinomial Naive Bayes
+        # Add 'var_smoothing' if you wish to test Gaussian Naive Bayes
+    }
+    dt_params = {
+        'max_depth': [None, 10, 20],  # None means no limit
+        'criterion': ['gini', 'entropy']
+    }
+    rf_params = {
+        'n_estimators': [10, 50, 100],
+        'max_depth': [None, 10, 20]
+    }
+    svm_params = {
+        'kernel': ['linear', 'rbf'],
+        'C': [0.1, 1, 10]
+    }
+    mlp_params = {
+        'hidden_layer_sizes': [(50,), (100,)],  # Example sizes
+        'activation': ['logistic', 'relu']
+    }
 
-
-
+    # ---------------------- Training and eval. of models -------------------------
     # Naive Bayes
-    train_and_evaluate_model(MultinomialNB(), X_train, y_train, X_test, y_test, 'Naive Bayes')
-
+    best_nb = train_and_evaluate_model(MultinomialNB(), nb_params, TrainingDataSet, TrainingLabels, TestDataSet,
+                                       TestLabels, 'Naive Bayes')
     # Decision Tree
-    train_and_evaluate_model(DecisionTreeClassifier(), X_train, y_train, X_test, y_test, 'Decision Tree')
-
+    best_dt = train_and_evaluate_model(DecisionTreeClassifier(), dt_params, TrainingDataSet, TrainingLabels,
+                                       TestDataSet, TestLabels, 'Decision Tree')
     # Random Forest
-    train_and_evaluate_model(RandomForestClassifier(), X_train, y_train, X_test, y_test, 'Random Forest')
-
+    best_rf = train_and_evaluate_model(RandomForestClassifier(), rf_params, TrainingDataSet, TrainingLabels,
+                                       TestDataSet, TestLabels, 'Random Forest')
     # SVM
-    train_and_evaluate_model(SVC(), X_train, y_train, X_test, y_test, 'SVM')
-
+    best_svm = train_and_evaluate_model(SVC(), svm_params, TrainingDataSet, TrainingLabels, TestDataSet, TestLabels,
+                                        'SVM')
     # Multilayer Perceptron
-    train_and_evaluate_model(MLPClassifier(max_iter=1000), X_train, y_train, X_test, y_test, 'Multilayer Perceptron')
-
-
+    best_mlp = train_and_evaluate_model(MLPClassifier(max_iter=1000), mlp_params, TrainingDataSet, TrainingLabels,
+                                        TestDataSet, TestLabels, 'Multilayer Perceptron')
